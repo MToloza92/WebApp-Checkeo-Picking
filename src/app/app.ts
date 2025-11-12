@@ -1,12 +1,29 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  standalone: true,
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  template: `
+    <nav>
+      <a routerLink="/upload" routerLinkActive="active">📦 Cargar Factura</a> |
+      <a routerLink="/checklist" routerLinkActive="active">✅ Checklist</a>
+    </nav>
+    <router-outlet></router-outlet>
+  `,
+  styles: [`
+    nav {
+      background: #f8f8f8;
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      gap: 1rem;
+    }
+    a.active {
+      font-weight: bold;
+      color: #2b7a2b;
+    }
+  `]
 })
-export class App {
-  protected readonly title = signal('check-picking');
-}
+export class AppComponent {}

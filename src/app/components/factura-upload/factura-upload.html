@@ -1,0 +1,32 @@
+<h2>Cargar Facturas</h2>
+
+<input type="file" (change)="onFilesSelected($event)" multiple accept=".xlsx, .xls, .pdf" />
+
+<div *ngIf="facturas.length">
+  <h3>Facturas cargadas ({{ facturas.length }})</h3>
+
+  <h3>Facturas cargadas ({{ facturas.length }})</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nombre del archivo</th>
+        <th>Productos detectados</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let f of facturas; let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ f.fileName }}</td>
+        <td>{{ f.productos.length }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <button (click)="guardarFacturas()">Guardar y continuar</button>
+  <button (click)="limpiarTodo()">🧹 Limpiar todo</button>
+</div>
+
+<p *ngIf="!facturas.length">No hay facturas cargadas.</p>

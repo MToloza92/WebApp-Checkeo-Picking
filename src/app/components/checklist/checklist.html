@@ -1,0 +1,50 @@
+<h2>Checklist de Productos</h2>
+
+<div *ngIf="products.length">
+  <input type="text" placeholder="Buscar por código o descripción" [(ngModel)]="filter" />
+
+  <button (click)="limpiarChecklist()">🔄 Reiniciar conteo</button>
+
+  <div class="progreso">
+    <div class="barra" [style.width.%]="getProgreso()"></div>
+  </div>
+  <p>Progreso: {{ getProgreso() }}%</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Código</th>
+        <th>Descripción</th>
+        <th>U. Medida</th>
+        <th>Cantidad Total</th>
+        <th>Cantidad Verificada</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of filtrarProductos()" [class.parcial]="p.estado === 'parcial'"
+        [class.completo]="p.estado === 'completo'" [class.excedido]="p.estado === 'excedido'">
+        <td>{{ p.n }}</td>
+        <td>{{ p.codigo }}</td>
+        <td>{{ p.descripcion }}</td>
+        <td>{{ p.unidad }}</td>
+        <td>{{ p.cantidad }}</td>
+        <td>
+          <input type="number" [(ngModel)]="p.cantidadVerificada" (input)="actualizarCantidad(p)" min="0"
+            [max]="p.cantidad" />
+        </td>
+        <td>
+          <span *ngIf="p.estado === 'pendiente'">⚪ Pendiente</span>
+          <span *ngIf="p.estado === 'parcial'">🟡 Parcial</span>
+          <span *ngIf="p.estado === 'completo'">🟢 Completo</span>
+          <span *ngIf="p.estado === 'excedido'">🔴 Excedido</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<p *ngIf="!products.length">
+  ⚠️ No hay productos cargados. Sube primero una factura.
+</p>

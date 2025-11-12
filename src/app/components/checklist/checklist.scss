@@ -1,0 +1,22 @@
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+}
+
+tr.checked {
+  background-color: #dff0d8;
+}
+
+input {
+  margin-bottom: 10px;
+  padding: 5px;
+  width: 50%;
+}
