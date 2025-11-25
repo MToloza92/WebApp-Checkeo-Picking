@@ -20,3 +20,107 @@ input {
   padding: 5px;
   width: 50%;
 }
+
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 350px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+}
+
+.modal h2 {
+  margin-top: 0;
+}
+
+.modal .acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+button.guardar {
+  background: #4CAF50;
+  color: white;
+}
+
+button.cancelar {
+  background: #f44336;
+  color: white;
+}
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9000;
+}
+
+.modal {
+  background: #ffffff;
+  padding: 20px 25px;
+  width: 380px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  animation: pop 0.25s ease-out;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-historial {
+  width: 650px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.tabla-historial {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.tabla-historial th,
+.tabla-historial td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.btn.descargar {
+  background: #2196F3;
+  color: white;
+}
+
+.btn.limpiar {
+  background: #d9534f;
+  color: white;
+}
+
+.btn.cancelar {
+  background: #6c757d;
+  color: white;
+}

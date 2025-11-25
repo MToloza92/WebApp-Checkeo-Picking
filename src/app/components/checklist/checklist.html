@@ -1,50 +1,128 @@
-<h2>Checklist de Productos</h2>
+<div class="checklist-container">
 
-<div *ngIf="products.length">
-  <input type="text" placeholder="Buscar por código o descripción" [(ngModel)]="filter" />
+  <!-- Título -->
+  <h2>Checklist de Productos</h2>
 
-  <button (click)="limpiarChecklist()">🔄 Reiniciar conteo</button>
+  <!-- Barra de búsqueda -->
+  <input type="text" placeholder="Buscar por código o descripción..." [(ngModel)]="filter" class="input-busqueda" />
+    <!-- Progreso -->
+    <div class="progreso-container">
+      <div class="progreso-barra">
+        <div class="progreso" [style.width.%]="getProgreso()"></div>
+      </div>
+      <p>{{ getProgreso() }}% completado</p>
+    </div>
 
-  <div class="progreso">
-    <div class="barra" [style.width.%]="getProgreso()"></div>
+    <!-- Botones principales -->
+    <div class="botones">
+      <button class="btn limpiar" (click)="limpiarChecklist()">Limpiar Checklist</button>
+
+      <button class="btn reporte" (click)="abrirModalGuardar()">
+        Generar Reporte
+      </button>
+    </div>
+
+    <button class="btn historial" (click)="abrirHistorial()">
+      Ver Historial
+    </button>
+
+    <!-- ============================ -->
+    <!--   MODAL HISTORIAL          -->
+    <!-- ============================ -->
+    <div class="modal-backdrop" *ngIf="mostrarHistorial">
+      <div class="modal modal-historial">
+
+        <h3>Historial de Reportes</h3>
+
+        <div *ngIf="historial.length === 0">
+          <p>No hay reportes aún.</p>
+        </div>
+
+        <table *ngIf="historial.length > 0" class="tabla-historial">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let h of historial">
+              <td>{{ h.nombre }}</td>
+              <td>{{ h.tipo }}</td>
+              <td>{{ h.fecha }}</td>
+              <td>
+                <button class="btn descargar" (click)="descargarHistorialItem(h)">
+                  Descargar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="modal-buttons">
+          <button class="btn limpiar" (click)="borrarHistorial()">Borrar historial</button>
+          <button class="btn cancelar" (click)="cerrarHistorial()">Cerrar</button>
+        </div>
+
+      </div>
+    </div>
+
+  <!-- ================================= -->
+  <!--   MODAL “GUARDAR COMO...”         -->
+  <!-- ================================= -->
+  <div class="modal-backdrop" *ngIf="mostrarModalGuardar">
+    <div class="modal">
+      <h3>Guardar Reporte</h3>
+
+      <label>Nombre del archivo:</label>
+      <input type="text" [(ngModel)]="nombreArchivo" class="input-text" />
+
+      <label>Formato:</label>
+      <select [(ngModel)]="formatoSeleccionado" class="input-select">
+        <option value="pdf">PDF</option>
+        <option value="excel">Excel</option>
+      </select>
+
+      <div class="modal-buttons">
+        <button class="btn cancelar" (click)="cerrarModalGuardar()">Cancelar</button>
+        <button class="btn confirmar" (click)="confirmarGuardado()">Guardar</button>
+      </div>
+    </div>
   </div>
-  <p>Progreso: {{ getProgreso() }}%</p>
 
-  <table>
+  <!-- Tabla -->
+  <table class="tabla">
     <thead>
       <tr>
         <th>#</th>
         <th>Código</th>
         <th>Descripción</th>
-        <th>U. Medida</th>
-        <th>Cantidad Total</th>
-        <th>Cantidad Verificada</th>
+        <th>Cant.</th>
+        <th>Verificada</th>
         <th>Estado</th>
       </tr>
     </thead>
+
     <tbody>
-      <tr *ngFor="let p of filtrarProductos()" [class.parcial]="p.estado === 'parcial'"
-        [class.completo]="p.estado === 'completo'" [class.excedido]="p.estado === 'excedido'">
+      <tr *ngFor="let p of filtrarProductos()">
         <td>{{ p.n }}</td>
         <td>{{ p.codigo }}</td>
         <td>{{ p.descripcion }}</td>
-        <td>{{ p.unidad }}</td>
         <td>{{ p.cantidad }}</td>
+
         <td>
-          <input type="number" [(ngModel)]="p.cantidadVerificada" (input)="actualizarCantidad(p)" min="0"
-            [max]="p.cantidad" />
+          <input type="number" [(ngModel)]="p.cantidadVerificada" (input)="actualizarCantidad(p)" class="input-num" />
         </td>
+
         <td>
-          <span *ngIf="p.estado === 'pendiente'">⚪ Pendiente</span>
-          <span *ngIf="p.estado === 'parcial'">🟡 Parcial</span>
-          <span *ngIf="p.estado === 'completo'">🟢 Completo</span>
-          <span *ngIf="p.estado === 'excedido'">🔴 Excedido</span>
+          <span class="estado" [ngClass]="p.estado">
+            {{ p.estado }}
+          </span>
         </td>
       </tr>
     </tbody>
   </table>
 </div>
-
-<p *ngIf="!products.length">
-  ⚠️ No hay productos cargados. Sube primero una factura.
-</p>
