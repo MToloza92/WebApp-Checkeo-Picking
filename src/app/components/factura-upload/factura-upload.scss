@@ -1,18 +1,70 @@
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+.container {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
 }
 
-th,
-td {
-  border: 1px solid #ccc;
-  padding: 6px;
+.upload-card {
+  width: 100%;
+  max-width: 700px;
+  padding: 24px;
+  border-radius: 12px;
+}
+
+/* ======================= LISTA CON SCROLL REAL ======================= */
+.lista-facturas-scroll {
+  max-height: 300px;
+  /* altura máxima antes de scroll */
+  overflow-y: auto;
+  /* scroll vertical */
+  overflow-x: hidden;
+  /* evitar scroll horizontal */
+  margin-top: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  display: block;
+  /* evita que mat-table rompa el contenedor */
+}
+
+/* ======================= TABLA MATERIAL CONTROLADA ======================= */
+table {
+  width: 100% !important;
+  table-layout: fixed;
+  /* evita expansión infinita */
+  border-spacing: 0;
+}
+
+/* Cabecera y filas */
+.mat-header-row,
+.mat-row {
+  height: 44px !important;
+}
+
+.mat-header-cell,
+.mat-cell {
+  padding: 8px 12px !important;
+  white-space: nowrap;
+  /* evita que se expanda */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* ... cuando es largo */
+}
+
+/* Columnas */
+.mat-column-n {
+  width: 40px !important;
+}
+
+.mat-column-productos {
+  width: 110px !important;
   text-align: center;
 }
 
-button {
-  margin-top: 10px;
-  margin-right: 5px;
-  padding: 6px 10px;
+.mat-icon-button {
+  transition: 0.2s ease-in-out;
+}
+
+.mat-icon-button:hover {
+  background: rgba(255, 0, 0, 0.1);
 }

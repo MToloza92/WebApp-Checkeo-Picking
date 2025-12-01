@@ -1,0 +1,38 @@
+// El dialog no debe tener scroll porque su contenido es pequeño
+::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+  overflow: hidden !important;
+}
+
+/* Título centrado y con más espacio */
+.titulo {
+  font-size: 20px;
+  font-weight: 600;
+  text-align: center;
+  padding-bottom: 5px;
+}
+
+/* Contenido más aireado */
+.contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; // Más separación entre inputs
+  padding: 10px 5px 20px 5px;
+}
+
+/* Inputs más anchos y con mejor presencia */
+.campo {
+  width: 100%;
+  min-width: 260px;
+}
+
+/* Botones más separados y bonitos */
+.acciones {
+  padding: 10px 5px 15px 5px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+
+  button {
+    min-width: 110px;
+  }
+}

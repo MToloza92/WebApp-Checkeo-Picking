@@ -1,32 +1,70 @@
-<h2>Cargar Facturas</h2>
+<div class="container">
 
-<input type="file" (change)="onFilesSelected($event)" multiple accept=".xlsx, .xls, .pdf" />
+  <mat-card class="upload-card">
 
-<div *ngIf="facturas.length">
-  <h3>Facturas cargadas ({{ facturas.length }})</h3>
+    <h2 class="titulo">Cargar Facturas</h2>
 
-  <h3>Facturas cargadas ({{ facturas.length }})</h3>
+    <!-- Input file oculto -->
+    <input #fileInput type="file" multiple accept=".xlsx, .xls, .pdf" style="display: none"
+      (change)="onFilesSelected($event)" />
 
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Nombre del archivo</th>
-        <th>Productos detectados</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let f of facturas; let i = index">
-        <td>{{ i + 1 }}</td>
-        <td>{{ f.fileName }}</td>
-        <td>{{ f.productos.length }}</td>
-      </tr>
-    </tbody>
-  </table>
+    <!-- Botón subir -->
+    <button mat-raised-button color="primary" (click)="fileInput.click()">
+      📂 Seleccionar archivos
+    </button>
 
+    <p class="subtexto">Formatos permitidos: PDF, XLSX, XLS</p>
 
-  <button (click)="guardarFacturas()">Guardar y continuar</button>
-  <button (click)="limpiarTodo()">🧹 Limpiar todo</button>
+    <!-- ======================================= -->
+    <!--   LISTA CON SCROLL     -->
+    <!-- ======================================= -->
+    <div *ngIf="facturas.length">
+
+      <h3 class="subtitulo">Facturas cargadas ({{ facturas.length }})</h3>
+
+      <!-- Scroll container -->
+      <div class="lista-facturas-scroll">
+
+        <table mat-table [dataSource]="facturas" class="mat-elevation-z2 tabla-facturas">
+
+          <!-- Número -->
+          <ng-container matColumnDef="n">
+            <th mat-header-cell *matHeaderCellDef>#</th>
+            <td mat-cell *matCellDef="let f; let i = index">{{ i + 1 }}</td>
+          </ng-container>
+
+          <!-- Nombre archivo -->
+          <ng-container matColumnDef="nombre">
+            <th mat-header-cell *matHeaderCellDef>Nombre</th>
+            <td mat-cell *matCellDef="let f">{{ f.fileName }}</td>
+          </ng-container>
+
+          <!-- Productos detectados -->
+          <ng-container matColumnDef="productos">
+            <th mat-header-cell *matHeaderCellDef>Productos</th>
+            <td mat-cell *matCellDef="let f">{{ f.productos.length }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['n','nombre','productos']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['n','nombre','productos']"></tr>
+
+        </table>
+
+      </div>
+
+      <!-- Botones -->
+      <button mat-flat-button color="accent" class="btn-guardar" (click)="guardarFacturas()">
+        Guardar y continuar
+      </button>
+
+      <button mat-stroked-button color="warn" class="btn-limpiar" (click)="limpiarTodo()">
+        Limpiar todo
+      </button>
+
+    </div>
+
+    <p *ngIf="!facturas.length" class="sin-facturas">No hay facturas cargadas.</p>
+
+  </mat-card>
+
 </div>
-
-<p *ngIf="!facturas.length">No hay facturas cargadas.</p>
