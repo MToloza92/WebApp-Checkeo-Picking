@@ -1,0 +1,23 @@
+<h2 mat-dialog-title class="titulo">Guardar Reporte</h2>
+
+<div mat-dialog-content class="contenido">
+
+  <mat-form-field appearance="outline" class="campo">
+    <mat-label>Nombre del archivo</mat-label>
+    <input matInput [(ngModel)]="nombreArchivo">
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="campo">
+    <mat-label>Formato</mat-label>
+    <mat-select [(ngModel)]="formato">
+      <mat-option value="pdf">PDF</mat-option>
+      <mat-option value="excel">Excel</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+</div>
+
+<div mat-dialog-actions align="end" class="acciones">
+  <button mat-stroked-button color="warn" (click)="cerrar()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="guardar()">Guardar</button>
+</div>
