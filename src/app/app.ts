@@ -1,28 +1,25 @@
 import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
+import { NavbarComponent } from './components/navbar/navbar';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [
+    RouterOutlet,
+    NavbarComponent,
+    RouterModule
+  ],
   template: `
-    <nav>
-      <a routerLink="/upload" routerLinkActive="active">📦 Cargar Factura</a> |
-      <a routerLink="/checklist" routerLinkActive="active">✅ Checklist</a>
-    </nav>
-    <router-outlet></router-outlet>
+    <app-navbar></app-navbar>
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
   `,
   styles: [`
-    nav {
-      background: #f8f8f8;
-      padding: 10px;
-      border-bottom: 1px solid #ccc;
-      display: flex;
-      gap: 1rem;
-    }
-    a.active {
-      font-weight: bold;
-      color: #2b7a2b;
+    .content {
+      padding: 24px;
     }
   `]
 })

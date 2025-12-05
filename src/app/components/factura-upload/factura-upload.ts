@@ -1,9 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as XLSX from 'xlsx';
-import { PdfToExcelService } from '../../services/pdf-to-excel';
-
-// Importar Angular Material
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -11,9 +8,13 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
+import { PdfToExcelService } from '../../services/pdf-to-excel';
+import { StorageService } from '../../services/storage';
+import { Producto } from '../../models/producto';
+
 interface Factura {
   fileName: string;
-  productos: any[];
+  productos: Producto[];
 }
 
 @Component({
@@ -21,7 +22,6 @@ interface Factura {
   standalone: true,
   imports: [
     CommonModule,
-    // Material UI
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -35,35 +35,46 @@ interface Factura {
 export class FacturaUpload {
 
   facturas: Factura[] = [];
-  allProducts: any[] = [];
+  allProducts: Producto[] = [];
 
-  constructor(private pdfToExcel: PdfToExcelService) { }
+  constructor(
+    private pdfToExcel: PdfToExcelService,
+    private storage: StorageService
+  ) {}
 
+  // ------------------------------------------------------------
+  // Cuando el usuario selecciona uno o más archivos
+  // ------------------------------------------------------------
   onFilesSelected(event: any): void {
     const files: FileList = event.target.files;
     if (!files || files.length === 0) return;
 
     Array.from(files).forEach(async (file) => {
-      const fileName = file.name.toLowerCase();
+      const name = file.name.toLowerCase();
 
-      if (fileName.endsWith('.pdf')) {
-        console.log(`Detectado PDF: ${file.name}`);
+      // Conversión automática PDF → Excel
+      if (name.endsWith('.pdf')) {
         try {
           const blob = await this.pdfToExcel.pdfToExcel(file);
           const newFile = new File([blob], file.name.replace('.pdf', '.xlsx'));
           this.procesarFactura(newFile);
         } catch (err) {
-          console.error('Error al convertir PDF:', err);
-          alert('La conversión automática a Excel aún no está disponible. Puedes convertirlo manualmente a .xlsx para procesarlo.');
+          alert('Aún no se puede convertir PDF automáticamente.');
         }
-      } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+        return;
+      }
+
+      // Excel directo
+      if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
         this.procesarFactura(file);
-      } else {
-        console.warn(`Tipo de archivo no soportado: ${file.name}`);
+        return;
       }
     });
   }
 
+  // ------------------------------------------------------------
+  // Lee el Excel y extrae productos válidos
+  // ------------------------------------------------------------
   procesarFactura(file: File): void {
     const reader = new FileReader();
 
@@ -75,6 +86,7 @@ export class FacturaUpload {
         const sheet = workbook.Sheets[sheetName];
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
+        // Buscar fila donde están los encabezados
         const startIndex = jsonData.findIndex(
           (row: any) =>
             row &&
@@ -83,35 +95,36 @@ export class FacturaUpload {
             )
         );
 
-        if (startIndex === -1) {
-          console.warn(`No se encontró encabezado de productos en ${file.name}`);
-          return;
-        }
+        if (startIndex === -1) return;
 
+        // Obtener filas posteriores
         const detailRows = jsonData.slice(startIndex + 1);
 
+        // Filtrar filas inválidas
         const cleanRows = detailRows.filter(
           (row: any) =>
             row &&
-            row.length >= 8 &&
             typeof row[0] === 'number' &&
+            row.length >= 6 &&
             !row.join(' ').toLowerCase().includes('total')
         );
 
-        const productos = cleanRows.map((row: any) => ({
+        // Crear lista de productos con el modelo correcto
+        const productos: Producto[] = cleanRows.map((row: any, index: number) => ({
+          id: Date.now() + index, // ID único
           n: row[0],
           codigo: row[1],
           descripcion: row[2],
           unidad: row[4],
-          cantidad: row[5]
+          cantidad: Number(row[5]),
+          cantidadVerificada: 0,
+          estado: 'pendiente'
         }));
 
         this.facturas.push({
           fileName: file.name,
           productos
         });
-
-        console.log(`Factura procesada: ${file.name}`, productos);
 
       } catch (err) {
         console.error('Error leyendo factura:', err);
@@ -121,30 +134,37 @@ export class FacturaUpload {
     reader.readAsArrayBuffer(file);
   }
 
+  // ------------------------------------------------------------
+  // Guarda TODAS las facturas al StorageService oficial
+  // ------------------------------------------------------------
   guardarFacturas(): void {
-    const merged = this.facturas.flatMap((f) => f.productos);
+    const merged = this.facturas.flatMap(f => f.productos);
 
-    this.allProducts = merged.map((p, index) => ({
+    // Normalizar numeración
+    this.allProducts = merged.map((p, i) => ({
       ...p,
-      n: index + 1
+      n: i + 1
     }));
 
-    localStorage.setItem('productosFactura', JSON.stringify(this.allProducts));
-    alert(`Se guardaron ${this.allProducts.length} productos de ${this.facturas.length} facturas.`);
+    // Guardar con StorageService (clave correcta v2)
+    this.storage.saveProducts(this.allProducts);
+
+    alert(`Se guardaron ${this.allProducts.length} productos.`);
   }
 
+  // ------------------------------------------------------------
+  // Limpia la vista (no localStorage)
+  // ------------------------------------------------------------
   limpiarTodo(): void {
-    if (confirm('¿Seguro que deseas limpiar todas las facturas cargadas?')) {
-      this.facturas = [];
-      this.allProducts = [];
-    }
+    if (!confirm('¿Seguro que deseas limpiar todas las facturas cargadas?'))
+      return;
+
+    this.facturas = [];
+    this.allProducts = [];
   }
 
   eliminarFactura(index: number): void {
-    const confirmado = confirm('¿Seguro que deseas eliminar esta factura?');
-
-    if (!confirmado) return;
-
+    if (!confirm('¿Seguro que deseas eliminar esta factura?')) return;
     this.facturas.splice(index, 1);
   }
 }

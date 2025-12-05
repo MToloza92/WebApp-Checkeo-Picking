@@ -1,0 +1,33 @@
+.historial-container {
+  max-width: 850px;
+  margin: auto;
+  padding: 20px;
+}
+
+.tabla-scroll {
+  max-height: 350px;
+  overflow-y: auto;
+  margin-top: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.chip {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.chip.pdf {
+  background: #d32f2f;
+}
+
+.chip.excel {
+  background: #2e7d32;
+}
+
+.btn-limpiar {
+  margin-top: 20px;
+}

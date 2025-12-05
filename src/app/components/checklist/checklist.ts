@@ -11,7 +11,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { ReporteService } from '../../services/reporte';
+import { StorageService } from '../../services/storage';
 import { ModalGuardar } from '../modal-guardar/modal-guardar';
+import { Producto } from '../../models/producto';
 
 @Component({
   selector: 'app-checklist',
@@ -32,9 +34,10 @@ import { ModalGuardar } from '../modal-guardar/modal-guardar';
 })
 export class Checklist {
 
-  // Material Table datasource ✔
-  dataSource = new MatTableDataSource<any>([]);
+  /** Tabla Material */
+  dataSource = new MatTableDataSource<Producto>([]);
 
+  /** Columnas visibles */
   displayedColumns: string[] = [
     'n',
     'codigo',
@@ -44,107 +47,118 @@ export class Checklist {
     'estado',
   ];
 
-  products: any[] = [];
+  /** Productos cargados desde LocalStorage */
+  products: Producto[] = [];
 
-  // Búsqueda
+  /** Filtro del buscador */
   filter: string = '';
 
   constructor(
     private reporteService: ReporteService,
+    private storage: StorageService,
     private dialog: MatDialog
   ) {}
 
+  // ---------------------------------------------------------
+  // Cargar productos desde LocalStorage (versión StorageService)
+  // ---------------------------------------------------------
   ngOnInit(): void {
-    const saved = localStorage.getItem('productosFactura');
-    if (!saved) {
-      alert('⚠️ No hay productos cargados. Sube primero una factura.');
+
+    // Se obtienen los productos desde el StorageService
+    const storedProducts = this.storage.getProducts();
+
+    if (!storedProducts || storedProducts.length === 0) {
+      alert('No hay productos cargados. Sube primero una factura.');
       return;
     }
 
-    const rawProducts = JSON.parse(saved);
-    const mergedMap = new Map<string, any>();
+    console.log('Productos cargados:', storedProducts);
 
-    // Combinar productos con mismo código y descripción
-    rawProducts.forEach((p: any) => {
-      const key = `${p.codigo}-${p.descripcion}`.toLowerCase();
+    // Asignamos al arreglo principal
+    this.products = storedProducts;
 
-      if (mergedMap.has(key)) {
-        const existing = mergedMap.get(key);
-        existing.cantidad += Number(p.cantidad);
-      } else {
-        mergedMap.set(key, {
-          ...p,
-          cantidad: Number(p.cantidad),
-          cantidadVerificada: 0,
-          estado: 'pendiente'
-        });
-      }
-    });
+    // Cargar en tabla Material
+    this.dataSource.data = [...this.products];
 
-    this.products = Array.from(mergedMap.values()).map((p, i) => ({
-      ...p,
-      n: i + 1
-    }));
-
-    // Cargar en el datasource ✔
-    this.dataSource.data = this.products;
-
-    // Activar filtro global para todas las columnas
+    // Filtro en todas las columnas
     this.dataSource.filterPredicate = (data, filtro) => {
       const t = filtro.trim().toLowerCase();
       return (
-        data.codigo.toString().toLowerCase().includes(t) ||
-        data.descripcion.toString().toLowerCase().includes(t)
+        data.codigo.toLowerCase().includes(t) ||
+        data.descripcion.toLowerCase().includes(t)
       );
     };
   }
 
-  // ✔ Filtro de Angular Material
+  // ---------------------------------------------------------
+  // Aplicar filtro a la tabla
+  // ---------------------------------------------------------
   aplicarFiltro(event: any) {
     this.dataSource.filter = event.target.value.trim().toLowerCase();
   }
 
-  // Actualizar estado del producto
-  actualizarCantidad(p: any): void {
-    const cantidadNum = Number(p.cantidad);
-    const verificadaNum = Number(p.cantidadVerificada);
+  // ---------------------------------------------------------
+  // Actualización del estado del producto
+  // ---------------------------------------------------------
+  actualizarCantidad(p: Producto): void {
+    const cantidad = Number(p.cantidad);
+    const verificada = Number(p.cantidadVerificada);
 
-    if (verificadaNum < 0) p.cantidadVerificada = 0;
+    if (verificada <= 0) {
+      p.estado = 'pendiente';
+      p.cantidadVerificada = 0;
+      return;
+    }
 
-    if (verificadaNum === 0) p.estado = 'pendiente';
-    else if (verificadaNum < cantidadNum) p.estado = 'parcial';
-    else if (verificadaNum === cantidadNum) p.estado = 'completo';
-    else p.estado = 'excedido';
+    if (verificada < cantidad) {
+      p.estado = 'parcial';
+      return;
+    }
+
+    if (verificada === cantidad) {
+      p.estado = 'completo';
+      return;
+    }
+
+    if (verificada > cantidad) {
+      p.estado = 'excedido';
+      return;
+    }
   }
 
-  // Limpiar checklist
+  // ---------------------------------------------------------
+  // Limpiar valores del checklist
+  // ---------------------------------------------------------
   limpiarChecklist(): void {
-    if (!confirm('¿Deseas reiniciar todas las cantidades?')) return;
+    if (!confirm('¿Reiniciar todas las cantidades?')) return;
 
     this.products.forEach((p) => {
       p.cantidadVerificada = 0;
       p.estado = 'pendiente';
     });
 
-    // Actualizar tabla
     this.dataSource.data = [...this.products];
   }
 
-  // Progreso
+  // ---------------------------------------------------------
+  // Progreso general
+  // ---------------------------------------------------------
   getProgreso(): number {
     const total = this.products.length;
-    const completos = this.products.filter((p) => p.estado === 'completo').length;
+    const completos = this.products.filter(p => p.estado === 'completo').length;
     return total ? Math.round((completos / total) * 100) : 0;
   }
 
-  // Abrir modal guardar
+  // ---------------------------------------------------------
+  // Modal para guardar PDF/Excel
+  // ---------------------------------------------------------
   abrirModalGuardar(): void {
     const dialogRef = this.dialog.open(ModalGuardar, { width: '400px' });
 
-    dialogRef.afterClosed().subscribe(resultado => {
-      if (!resultado) return;
+    dialogRef.afterClosed().subscribe(result => {
+      if (!result) return;
 
-      const { nombreArchivo, formato } = resultado;
+      const { nombreArchivo, formato } = result;
 
       this.reporteService.generarReporte(
         this.products,

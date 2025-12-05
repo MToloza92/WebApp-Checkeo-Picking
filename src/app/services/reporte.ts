@@ -2,19 +2,29 @@ import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { ReporteHistorial } from '../interfaces/reporte-historial';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ReporteService {
 
-  private HISTORY_KEY = 'historialReportes';
+  /**
+   * Clave única del historial.
+   * Versionada por si cambia la estructura en el futuro.
+   */
+  private HISTORY_KEY = 'checkPicking_historial_v1';
 
-  // -------------------------------------------------------------
-  // HISTORIAL
-  // -------------------------------------------------------------
-  guardarHistorial(nombre: string, tipo: string) {
-    const historial = JSON.parse(localStorage.getItem(this.HISTORY_KEY) || '[]');
+  // ======================================================
+  //   HISTORIAL: GUARDAR / OBTENER / LIMPIAR
+  // ======================================================
+
+  /**
+   * Agrega un reporte al historial (PDF o Excel).
+   */
+  guardarHistorial(nombre: string, tipo: 'pdf' | 'excel'): void {
+    const historial: ReporteHistorial[] =
+      JSON.parse(localStorage.getItem(this.HISTORY_KEY) || '[]');
 
     historial.push({
       nombre,
@@ -25,27 +35,56 @@ export class ReporteService {
     localStorage.setItem(this.HISTORY_KEY, JSON.stringify(historial));
   }
 
-  obtenerHistorial() {
+  /**
+   * Obtiene el historial completo.
+   */
+  obtenerHistorial(): ReporteHistorial[] {
     return JSON.parse(localStorage.getItem(this.HISTORY_KEY) || '[]');
   }
 
-  limpiarHistorial() {
+  /**
+   * Reemplaza totalmente el historial.
+   * (Usado al borrar elementos).
+   */
+  guardarHistorialArray(lista: ReporteHistorial[]): void {
+    localStorage.setItem(this.HISTORY_KEY, JSON.stringify(lista));
+  }
+
+  /**
+   * Elimina todo el historial.
+   */
+  limpiarHistorial(): void {
     localStorage.removeItem(this.HISTORY_KEY);
   }
 
-  // Descarga desde el historial
-  descargarDesdeHistorial(item: any, products: any[]) {
-    if (item.tipo === 'pdf') {
+  // ======================================================
+  //      DESCARGAR DESDE HISTORIAL
+  // ======================================================
+
+  /**
+   * Regenera un archivo PDF o Excel desde el historial.
+   */
+  descargarDesdeHistorial(item: ReporteHistorial, products: any[], formato: 'pdf' | 'excel') {
+    if (formato === 'pdf') {
       this.generarPDF(products, item.nombre);
     } else {
-      this.generarExcel(products, item.nombre);
+    this.generarExcel(products, item.nombre);
     }
   }
 
-  // -------------------------------------------------------------
-  // GENERAR REPORTE (PDF o EXCEL)
-  // -------------------------------------------------------------
-  generarReporte(products: any[], nombreArchivo: string, tipo: 'pdf' | 'excel'): void {
+  // ======================================================
+  //      GENERAR REPORTE MANUAL (usado en checklist)
+  // ======================================================
+
+  /**
+   * Genera un reporte (PDF o Excel) y lo guarda en historial.
+   */
+  generarReporte(
+    products: any[],
+    nombreArchivo: string,
+    tipo: 'pdf' | 'excel'
+  ): void {
+
     if (tipo === 'pdf') {
       this.generarPDF(products, nombreArchivo);
     } else {
@@ -55,21 +94,22 @@ export class ReporteService {
     this.guardarHistorial(nombreArchivo, tipo);
   }
 
-  // -------------------------------------------------------------
-  // EXCEL REAL
-  // -------------------------------------------------------------
+  // ======================================================
+  //      GENERAR ARCHIVO EXCEL
+  // ======================================================
+
   private generarExcel(products: any[], nombreArchivo: string): void {
     const hoja = XLSX.utils.json_to_sheet(products);
     const libro = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(libro, hoja, 'Checklist');
-
     XLSX.writeFile(libro, `${nombreArchivo}.xlsx`);
   }
 
-  // -------------------------------------------------------------
-  // PDF REAL CON TABLA
-  // -------------------------------------------------------------
+  // ======================================================
+  //      GENERAR ARCHIVO PDF
+  // ======================================================
+
   private generarPDF(products: any[], nombreArchivo: string): void {
     const doc = new jsPDF();
 
