@@ -9,6 +9,7 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatIconModule } from '@angular/material/icon';
 
 import { ReporteService } from '../../services/reporte';
 import { StorageService } from '../../services/storage';
@@ -27,7 +28,8 @@ import { Producto } from '../../models/producto';
     MatDialogModule,
     MatSelectModule,
     MatCardModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    MatIconModule
   ],
   templateUrl: './checklist.html',
   styleUrls: ['./checklist.scss']

@@ -4,10 +4,13 @@
   <h2 class="titulo">Checklist de Productos</h2>
 
   <!-- Barra de búsqueda Material -->
-  <mat-form-field appearance="outline" class="buscador">
-    <mat-label>Buscar producto</mat-label>
-    <input matInput (input)="aplicarFiltro($event)" placeholder="Código o descripción...">
-  </mat-form-field>
+    <mat-form-field appearance="outline" class="buscador">
+      <mat-label>Buscar producto</mat-label>
+      <input matInput type="text" placeholder="Código o descripción..." (keyup)="aplicarFiltro($event)" />
+      <button mat-icon-button matSuffix disabled>
+        <mat-icon>search</mat-icon>
+      </button>
+    </mat-form-field>
 
   <!-- Progreso -->
   <div class="progreso-wrapper">
