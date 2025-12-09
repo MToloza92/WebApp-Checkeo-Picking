@@ -33,7 +33,7 @@
     "file-saver": "^2.0.5",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
-    "pdfjs-dist": "^5.4.394",
+    "pdfjs-dist": "^5.4.449",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5",

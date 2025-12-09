@@ -1,13 +1,80 @@
+/* LOGO */
+.logo-image {
+  height: 40px;
+  object-fit: contain;
+}
 .navbar {
   padding: 0 16px;
+  height: 64px;
+  display: flex;
+  align-items: center;
 }
 
-.brand {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
 
+/* ESPACIADOR */
 .spacer {
-  flex: 1 1 auto;
+  flex-grow: 1;
+}
+
+/* BOTONES */
+button[mat-button] {
+  font-size: 15px;
+  padding: 0 12px;
+  min-width: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Íconos */
+mat-icon {
+  font-size: 20px;
+}
+
+/* ===========================
+      RESPONSIVE
+   =========================== */
+
+/* Tablets y móviles */
+@media (max-width: 900px) {
+  button[mat-button] {
+    font-size: 14px;
+    padding: 0 8px;
+  }
+
+  .logo-image {
+    height: 35px;
+  }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 700px) {
+  button[mat-button] {
+    font-size: 13px;
+    padding: 0 6px;
+  }
+
+  .logo-image {
+    height: 30px;
+  }
+}
+
+/* Móviles muy pequeños */
+@media (max-width: 500px) {
+  .navbar {
+    padding: 0 8px;
+  }
+
+  button[mat-button] {
+    font-size: 12px;
+    padding: 0 4px;
+  }
+
+  mat-icon {
+    font-size: 18px;
+  }
+
+  .logo-image {
+    height: 25px;
+  }
 }

@@ -108,3 +108,18 @@ table {
     padding: 0;
   }
 }
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+table {
+  min-width: 650px;
+}
+
+@media (max-width: 600px) {
+  .mat-column-verificada input {
+    max-width: 80px;
+    text-align: center;
+  }
+}

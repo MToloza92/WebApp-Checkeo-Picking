@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as XLSX from 'xlsx';
+
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -8,7 +9,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { PdfToExcelService } from '../../services/pdf-to-excel';
+import { PdfReaderService } from '../../services/pdf-reader';
 import { StorageService } from '../../services/storage';
 import { Producto } from '../../models/producto';
 
@@ -38,13 +39,13 @@ export class FacturaUpload {
   allProducts: Producto[] = [];
 
   constructor(
-    private pdfToExcel: PdfToExcelService,
+    private pdfReader: PdfReaderService,
     private storage: StorageService
   ) {}
 
-  // ------------------------------------------------------------
-  // Cuando el usuario selecciona uno o más archivos
-  // ------------------------------------------------------------
+  // ============================================================
+  //     CUANDO SE SUBEN ARCHIVOS (PDF o Excel)
+  // ============================================================
   onFilesSelected(event: any): void {
     const files: FileList = event.target.files;
     if (!files || files.length === 0) return;
@@ -52,55 +53,65 @@ export class FacturaUpload {
     Array.from(files).forEach(async (file) => {
       const name = file.name.toLowerCase();
 
-      // Conversión automática PDF → Excel
       if (name.endsWith('.pdf')) {
-        try {
-          const blob = await this.pdfToExcel.pdfToExcel(file);
-          const newFile = new File([blob], file.name.replace('.pdf', '.xlsx'));
-          this.procesarFactura(newFile);
-        } catch (err) {
-          alert('Aún no se puede convertir PDF automáticamente.');
-        }
+        await this.procesarPDF(file);
         return;
       }
 
-      // Excel directo
       if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
-        this.procesarFactura(file);
+        this.procesarExcel(file);
         return;
       }
     });
   }
 
-  // ------------------------------------------------------------
-  // Lee el Excel y extrae productos válidos
-  // ------------------------------------------------------------
-  procesarFactura(file: File): void {
+  // ============================================================
+  //     PROCESAR PDF
+  // ============================================================
+  async procesarPDF(file: File) {
+    try {
+      const productos = await this.pdfReader.extraerProductos(file);
+
+      if (productos.length === 0) {
+        alert('No se pudieron detectar productos en el PDF.');
+        return;
+      }
+
+      this.facturas.push({
+        fileName: file.name,
+        productos
+      });
+
+    } catch (err) {
+      console.error('Error procesando PDF:', err);
+      alert('Ocurrió un error al leer el PDF.');
+    }
+  }
+
+  // ============================================================
+  //     PROCESAR EXCEL
+  // ============================================================
+  procesarExcel(file: File): void {
     const reader = new FileReader();
 
     reader.onload = (e: any) => {
       try {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-        // Buscar fila donde están los encabezados
         const startIndex = jsonData.findIndex(
           (row: any) =>
-            row &&
-            row.some((cell: any) =>
+            row?.some((cell: any) =>
               cell?.toString().toLowerCase().includes('descripción')
             )
         );
 
         if (startIndex === -1) return;
 
-        // Obtener filas posteriores
         const detailRows = jsonData.slice(startIndex + 1);
 
-        // Filtrar filas inválidas
         const cleanRows = detailRows.filter(
           (row: any) =>
             row &&
@@ -109,10 +120,9 @@ export class FacturaUpload {
             !row.join(' ').toLowerCase().includes('total')
         );
 
-        // Crear lista de productos con el modelo correcto
-        const productos: Producto[] = cleanRows.map((row: any, index: number) => ({
-          id: Date.now() + index, // ID único
-          n: row[0],
+        let idCounter = Date.now();
+        const productos: Producto[] = cleanRows.map((row: any) => ({
+          id: idCounter++,
           codigo: row[1],
           descripcion: row[2],
           unidad: row[4],
@@ -127,44 +137,37 @@ export class FacturaUpload {
         });
 
       } catch (err) {
-        console.error('Error leyendo factura:', err);
+        console.error('Error leyendo Excel:', err);
       }
     };
 
     reader.readAsArrayBuffer(file);
   }
 
-  // ------------------------------------------------------------
-  // Guarda TODAS las facturas al StorageService oficial
-  // ------------------------------------------------------------
+  // ============================================================
+  //     GUARDAR AL STORAGE
+  // ============================================================
   guardarFacturas(): void {
     const merged = this.facturas.flatMap(f => f.productos);
 
-    // Normalizar numeración
     this.allProducts = merged.map((p, i) => ({
       ...p,
-      n: i + 1
+      // numeración visual, no forma parte del modelo
+      index: i + 1
     }));
 
-    // Guardar con StorageService (clave correcta v2)
     this.storage.saveProducts(this.allProducts);
-
     alert(`Se guardaron ${this.allProducts.length} productos.`);
   }
 
-  // ------------------------------------------------------------
-  // Limpia la vista (no localStorage)
-  // ------------------------------------------------------------
   limpiarTodo(): void {
-    if (!confirm('¿Seguro que deseas limpiar todas las facturas cargadas?'))
-      return;
-
+    if (!confirm('¿Seguro que deseas limpiar todas las facturas?')) return;
     this.facturas = [];
     this.allProducts = [];
   }
 
   eliminarFactura(index: number): void {
-    if (!confirm('¿Seguro que deseas eliminar esta factura?')) return;
+    if (!confirm('¿Eliminar esta factura?')) return;
     this.facturas.splice(index, 1);
   }
 }

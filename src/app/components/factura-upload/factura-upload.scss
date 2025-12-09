@@ -68,3 +68,11 @@ table {
 .mat-icon-button:hover {
   background: rgba(255, 0, 0, 0.1);
 }
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+table {
+  min-width: 650px;
+}

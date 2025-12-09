@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 
+
 @Component({
   selector: 'app-navbar',
   standalone: true,
@@ -11,7 +12,7 @@ import { RouterModule } from '@angular/router';
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
-    RouterModule
+    RouterModule,
   ],
   templateUrl: './navbar.html',
   styleUrls: ['./navbar.scss']
