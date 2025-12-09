@@ -5,7 +5,7 @@ import { Producto } from '../models/producto';
 // ============================================================
 // CONFIGURACIÓN: USAR FAKE WORKER (REQUIERE SOLO TEXTO)
 // ============================================================
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = '';
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = '/assets/pdfjs/pdf.worker.mjs';
 
 @Injectable({ providedIn: 'root' })
 export class PdfReaderService {
