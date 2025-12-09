@@ -1,6 +1,6 @@
 # 📦 Checkeo Picking — WebApp para Validación de Productos en Bodega
 
-Aplicación web desarrollada en **Angular 17 (standalone components)** para cargar facturas, generar checklists y administrar un historial de reportes descargables en **PDF o Excel**.  
+Aplicación web desarrollada en **Angular 20 (standalone components)** para cargar facturas, generar checklists y administrar un historial de reportes descargables en **PDF o Excel**.  
 Funciona totalmente **offline**, usando LocalStorage, y está optimizada para uso en bodegas.
 
 ---
