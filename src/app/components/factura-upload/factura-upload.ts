@@ -44,7 +44,7 @@ export class FacturaUpload {
   ) {}
 
   // ============================================================
-  //     CUANDO SE SUBEN ARCHIVOS (PDF o Excel)
+  // SUBIR ARCHIVOS
   // ============================================================
   onFilesSelected(event: any): void {
     const files: FileList = event.target.files;
@@ -66,20 +66,25 @@ export class FacturaUpload {
   }
 
   // ============================================================
-  //     PROCESAR PDF
+  // PROCESAR PDF
   // ============================================================
   async procesarPDF(file: File) {
     try {
-      const productos = await this.pdfReader.extraerProductos(file);
+      const productosPDF = await this.pdfReader.extraerProductos(file);
 
-      if (productos.length === 0) {
+      const productosNormalizados = productosPDF.map(p => ({
+        ...p,
+        codigo: this.normalizarCodigo(p.codigo)
+      }));
+
+      if (productosNormalizados.length === 0) {
         alert('No se pudieron detectar productos en el PDF.');
         return;
       }
 
       this.facturas.push({
         fileName: file.name,
-        productos
+        productos: productosNormalizados
       });
 
     } catch (err) {
@@ -89,7 +94,7 @@ export class FacturaUpload {
   }
 
   // ============================================================
-  //     PROCESAR EXCEL
+  // PROCESAR EXCEL
   // ============================================================
   procesarExcel(file: File): void {
     const reader = new FileReader();
@@ -121,9 +126,9 @@ export class FacturaUpload {
         );
 
         let idCounter = Date.now();
-        const productos: Producto[] = cleanRows.map((row: any) => ({
+        const productosExcel: Producto[] = cleanRows.map((row: any) => ({
           id: idCounter++,
-          codigo: row[1],
+          codigo: this.normalizarCodigo(row[1]),
           descripcion: row[2],
           unidad: row[4],
           cantidad: Number(row[5]),
@@ -133,7 +138,7 @@ export class FacturaUpload {
 
         this.facturas.push({
           fileName: file.name,
-          productos
+          productos: productosExcel
         });
 
       } catch (err) {
@@ -145,19 +150,31 @@ export class FacturaUpload {
   }
 
   // ============================================================
-  //     GUARDAR AL STORAGE
+  // GUARDAR AL STORAGE Y AGRUPAR
   // ============================================================
   guardarFacturas(): void {
     const merged = this.facturas.flatMap(f => f.productos);
 
-    this.allProducts = merged.map((p, i) => ({
+    const mapa = new Map<string, Producto>();
+
+    for (const p of merged) {
+      const codigoNorm = this.normalizarCodigo(p.codigo);
+
+      if (mapa.has(codigoNorm)) {
+        mapa.get(codigoNorm)!.cantidad += p.cantidad;
+      } else {
+        mapa.set(codigoNorm, { ...p, codigo: codigoNorm });
+      }
+    }
+
+    this.allProducts = Array.from(mapa.values()).map((p, index) => ({
       ...p,
-      // numeración visual, no forma parte del modelo
-      index: i + 1
+      id: Date.now() + index
     }));
 
     this.storage.saveProducts(this.allProducts);
-    alert(`Se guardaron ${this.allProducts.length} productos.`);
+
+    alert(`Se guardaron ${this.allProducts.length} productos agrupados.`);
   }
 
   limpiarTodo(): void {
@@ -169,5 +186,16 @@ export class FacturaUpload {
   eliminarFactura(index: number): void {
     if (!confirm('¿Eliminar esta factura?')) return;
     this.facturas.splice(index, 1);
+  }
+
+  // ============================================================
+  // NORMALIZAR CÓDIGO
+  // ============================================================
+  private normalizarCodigo(codigo: any): string {
+    return String(codigo)
+      .trim()
+      .replace(/\s+/g, '')       // Quita espacios internos
+      .replace(/[^\w]/g, '')     // Quita caracteres raros
+      .toUpperCase();            // Asegura uniformidad
   }
 }
