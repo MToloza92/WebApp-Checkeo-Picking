@@ -1,3 +1,4 @@
+// checklist.ts
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -36,12 +37,9 @@ import { Producto } from '../../models/producto';
 })
 export class Checklist {
 
-  /** Tabla Material */
   dataSource = new MatTableDataSource<Producto>([]);
 
-  /** Columnas visibles */
   displayedColumns: string[] = [
-    'n',
     'codigo',
     'descripcion',
     'cantidad',
@@ -49,10 +47,7 @@ export class Checklist {
     'estado',
   ];
 
-  /** Productos cargados desde LocalStorage */
   products: Producto[] = [];
-
-  /** Filtro del buscador */
   filter: string = '';
 
   constructor(
@@ -61,12 +56,7 @@ export class Checklist {
     private dialog: MatDialog
   ) {}
 
-  // ---------------------------------------------------------
-  // Cargar productos desde LocalStorage (versión StorageService)
-  // ---------------------------------------------------------
   ngOnInit(): void {
-
-    // Se obtienen los productos desde el StorageService
     const storedProducts = this.storage.getProducts();
 
     if (!storedProducts || storedProducts.length === 0) {
@@ -74,34 +64,24 @@ export class Checklist {
       return;
     }
 
-    console.log('Productos cargados:', storedProducts);
-
-    // Asignamos al arreglo principal
     this.products = storedProducts;
-
-    // Cargar en tabla Material
     this.dataSource.data = [...this.products];
 
-    // Filtro en todas las columnas
+    // Nuevo filtro universal
     this.dataSource.filterPredicate = (data, filtro) => {
-      const t = filtro.trim().toLowerCase();
+      const f = filtro.trim().toUpperCase();
+
       return (
-        data.codigo.toLowerCase().includes(t) ||
-        data.descripcion.toLowerCase().includes(t)
+        data.codigo.toUpperCase().includes(f) ||
+        data.descripcion.toUpperCase().includes(f)
       );
     };
   }
 
-  // ---------------------------------------------------------
-  // Aplicar filtro a la tabla
-  // ---------------------------------------------------------
   aplicarFiltro(event: any) {
-    this.dataSource.filter = event.target.value.trim().toLowerCase();
+    this.dataSource.filter = event.target.value.trim().toUpperCase();
   }
 
-  // ---------------------------------------------------------
-  // Actualización del estado del producto
-  // ---------------------------------------------------------
   actualizarCantidad(p: Producto): void {
     const cantidad = Number(p.cantidad);
     const verificada = Number(p.cantidadVerificada);
@@ -128,9 +108,6 @@ export class Checklist {
     }
   }
 
-  // ---------------------------------------------------------
-  // Limpiar valores del checklist
-  // ---------------------------------------------------------
   limpiarChecklist(): void {
     if (!confirm('¿Reiniciar todas las cantidades?')) return;
 
@@ -142,18 +119,12 @@ export class Checklist {
     this.dataSource.data = [...this.products];
   }
 
-  // ---------------------------------------------------------
-  // Progreso general
-  // ---------------------------------------------------------
   getProgreso(): number {
     const total = this.products.length;
     const completos = this.products.filter(p => p.estado === 'completo').length;
     return total ? Math.round((completos / total) * 100) : 0;
   }
 
-  // ---------------------------------------------------------
-  // Modal para guardar PDF/Excel
-  // ---------------------------------------------------------
   abrirModalGuardar(): void {
     const dialogRef = this.dialog.open(ModalGuardar, { width: '400px' });
 
