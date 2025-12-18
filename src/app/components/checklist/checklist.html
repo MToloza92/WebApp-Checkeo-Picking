@@ -19,10 +19,17 @@
   </div>
 
   <!-- Botones -->
-  <div class="botones">
-    <button mat-flat-button color="warn" (click)="limpiarChecklist()">Limpiar Checklist</button>
-    <button mat-flat-button color="primary" (click)="abrirModalGuardar()">Generar Reporte</button>
-  </div>
+    <!-- Botones separados verticalmente -->
+    <div class="botones">
+      <button mat-stroked-button color="warn" (click)="limpiarChecklist()">
+        <mat-icon>refresh</mat-icon>
+        Limpiar Checklist
+      </button><button mat-flat-button color="primary" (click)="abrirModalGuardar()">
+        <mat-icon>download</mat-icon>
+        Generar Reporte
+      </button>
+
+    </div>
 
   <!-- Tabla -->
   <mat-card class="tabla-card">

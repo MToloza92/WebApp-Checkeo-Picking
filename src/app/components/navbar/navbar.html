@@ -1,25 +1,24 @@
 <mat-toolbar color="primary" class="navbar">
 
-  <!-- LOGO -->
-  <a routerLink="/">
-    <img src="../../../assets/logo/logo-image.png" alt="Logo" class="logo-image">
-  </a>
+  <span class="brand">
+    <img src="assets/logo/logo-image.png" alt="Logo">
+  </span>
 
   <span class="spacer"></span>
 
-  <button mat-button routerLink="/upload">
+  <button mat-button routerLink="/upload" routerLinkActive="active">
     <mat-icon>upload</mat-icon>
-    Cargar
+    <span>Cargar</span>
   </button>
 
-  <button mat-button routerLink="/checklist">
+  <button mat-button routerLink="/checklist" routerLinkActive="active">
     <mat-icon>task_alt</mat-icon>
-    Checklist
+    <span>Checklist</span>
   </button>
 
-  <button mat-button routerLink="/historial">
+  <button mat-button routerLink="/historial" routerLinkActive="active">
     <mat-icon>history</mat-icon>
-    Historial
+    <span>Historial</span>
   </button>
 
 </mat-toolbar>

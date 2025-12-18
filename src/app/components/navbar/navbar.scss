@@ -1,80 +1,111 @@
-/* LOGO */
-.logo-image {
-  height: 40px;
-  object-fit: contain;
-}
+// ============================================================
+//  NAVBAR - MATERIAL DESIGN AZURE
+// ============================================================
+
 .navbar {
-  padding: 0 16px;
+  padding: 0 24px;
   height: 64px;
-  display: flex;
-  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  top: 0;
+  z-index: 1000; // Asegurar que esté sobre todo
+  background-color: #2196f3 !important; // Fondo sólido Azure 500
 }
 
+// ============================================================
+//  BRAND / LOGO
+// ============================================================
 
-/* ESPACIADOR */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  img {
+    height: 36px;
+    width: auto;
+  }
+
+  .brand-text {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); // Mejor contraste
+  }
+}
+
+// ============================================================
+//  SPACER
+// ============================================================
+
 .spacer {
-  flex-grow: 1;
+  flex: 1 1 auto;
 }
 
-/* BOTONES */
+// ============================================================
+//  BOTONES DE NAVEGACIÓN
+// ============================================================
+
 button[mat-button] {
-  font-size: 15px;
-  padding: 0 12px;
-  min-width: auto;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* Íconos */
-mat-icon {
-  font-size: 20px;
-}
-
-/* ===========================
-      RESPONSIVE
-   =========================== */
-
-/* Tablets y móviles */
-@media (max-width: 900px) {
-  button[mat-button] {
-    font-size: 14px;
-    padding: 0 8px;
-  }
-
-  .logo-image {
-    height: 35px;
-  }
-}
-
-/* Pantallas pequeñas */
-@media (max-width: 700px) {
-  button[mat-button] {
-    font-size: 13px;
-    padding: 0 6px;
-  }
-
-  .logo-image {
-    height: 30px;
-  }
-}
-
-/* Móviles muy pequeños */
-@media (max-width: 500px) {
-  .navbar {
-    padding: 0 8px;
-  }
-
-  button[mat-button] {
-    font-size: 12px;
-    padding: 0 4px;
-  }
+  color: white !important; // Forzar color blanco
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin: 0 4px;
+  transition: background-color 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); // Mejor contraste
 
   mat-icon {
+    margin-right: 8px;
+    color: white !important; // Forzar iconos blancos
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+
+  &.active,
+  &[routerLinkActive="active"] {
+    background-color: rgba(255, 255, 255, 0.25);
+    font-weight: 600;
+  }
+}
+
+// ============================================================
+//  RESPONSIVE
+// ============================================================
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 16px;
+  }
+
+  .brand {
     font-size: 18px;
   }
 
-  .logo-image {
-    height: 25px;
+  button[mat-button] {
+    padding: 0 12px;
+    font-size: 13px;
+
+    mat-icon {
+      margin-right: 4px;
+      font-size: 20px;
+    }
+
+    // Ocultar texto en móvil, solo mostrar iconos
+    span {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  button[mat-button] {
+    padding: 0 8px;
+    min-width: 48px;
+
+    mat-icon {
+      margin-right: 0;
+    }
   }
 }

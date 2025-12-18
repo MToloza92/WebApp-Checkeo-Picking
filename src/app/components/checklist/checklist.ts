@@ -6,13 +6,13 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
 
 import { ReporteService } from '../../services/reporte';
 import { StorageService } from '../../services/storage';
+import { DialogService } from '../../services/dialog';
 import { ModalGuardar } from '../modal-guardar/modal-guardar';
 import { Producto } from '../../models/producto';
 
@@ -26,7 +26,6 @@ import { Producto } from '../../models/producto';
     MatInputModule,
     MatButtonModule,
     MatDialogModule,
-    MatSelectModule,
     MatCardModule,
     MatProgressBarModule,
     MatIconModule
@@ -36,12 +35,9 @@ import { Producto } from '../../models/producto';
 })
 export class Checklist {
 
-  /** Tabla Material */
   dataSource = new MatTableDataSource<Producto>([]);
 
-  /** Columnas visibles */
   displayedColumns: string[] = [
-    'n',
     'codigo',
     'descripcion',
     'cantidad',
@@ -49,58 +45,53 @@ export class Checklist {
     'estado',
   ];
 
-  /** Productos cargados desde LocalStorage */
   products: Producto[] = [];
-
-  /** Filtro del buscador */
-  filter: string = '';
 
   constructor(
     private reporteService: ReporteService,
     private storage: StorageService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private dialogService: DialogService
   ) {}
 
   // ---------------------------------------------------------
-  // Cargar productos desde LocalStorage (versión StorageService)
+  // Cargar productos
   // ---------------------------------------------------------
   ngOnInit(): void {
-
-    // Se obtienen los productos desde el StorageService
     const storedProducts = this.storage.getProducts();
 
     if (!storedProducts || storedProducts.length === 0) {
-      alert('No hay productos cargados. Sube primero una factura.');
+      this.dialogService.confirm({
+        title: 'Sin productos',
+        message: 'No hay productos cargados. Sube primero una factura.',
+        confirmText: 'Entendido',
+        cancelText: ''
+      }).subscribe();
       return;
     }
 
-    console.log('Productos cargados:', storedProducts);
-
-    // Asignamos al arreglo principal
     this.products = storedProducts;
-
-    // Cargar en tabla Material
     this.dataSource.data = [...this.products];
 
-    // Filtro en todas las columnas
+    // Filtro estable (NO rompe tabla)
     this.dataSource.filterPredicate = (data, filtro) => {
-      const t = filtro.trim().toLowerCase();
+      const f = filtro.trim().toUpperCase();
       return (
-        data.codigo.toLowerCase().includes(t) ||
-        data.descripcion.toLowerCase().includes(t)
+        data.codigo.toUpperCase().includes(f) ||
+        data.descripcion.toUpperCase().includes(f)
       );
     };
   }
 
   // ---------------------------------------------------------
-  // Aplicar filtro a la tabla
+  // Filtro buscador
   // ---------------------------------------------------------
   aplicarFiltro(event: any) {
-    this.dataSource.filter = event.target.value.trim().toLowerCase();
+    this.dataSource.filter = event.target.value.trim().toUpperCase();
   }
 
   // ---------------------------------------------------------
-  // Actualización del estado del producto
+  // Actualizar estado
   // ---------------------------------------------------------
   actualizarCantidad(p: Producto): void {
     const cantidad = Number(p.cantidad);
@@ -109,41 +100,38 @@ export class Checklist {
     if (verificada <= 0) {
       p.estado = 'pendiente';
       p.cantidadVerificada = 0;
-      return;
-    }
-
-    if (verificada < cantidad) {
+    } else if (verificada < cantidad) {
       p.estado = 'parcial';
-      return;
-    }
-
-    if (verificada === cantidad) {
+    } else if (verificada === cantidad) {
       p.estado = 'completo';
-      return;
-    }
-
-    if (verificada > cantidad) {
+    } else {
       p.estado = 'excedido';
-      return;
     }
   }
 
   // ---------------------------------------------------------
-  // Limpiar valores del checklist
+  // Limpiar checklist (Dialog Material)
   // ---------------------------------------------------------
   limpiarChecklist(): void {
-    if (!confirm('¿Reiniciar todas las cantidades?')) return;
+    this.dialogService.confirm({
+      title: '¿Reiniciar checklist?',
+      message: 'Se reiniciarán todas las cantidades verificadas.',
+      confirmText: 'Reiniciar',
+      cancelText: 'Cancelar'
+    }).subscribe(confirmado => {
+      if (!confirmado) return;
 
-    this.products.forEach((p) => {
-      p.cantidadVerificada = 0;
-      p.estado = 'pendiente';
+      this.products.forEach(p => {
+        p.cantidadVerificada = 0;
+        p.estado = 'pendiente';
+      });
+
+      this.dataSource.data = [...this.products];
     });
-
-    this.dataSource.data = [...this.products];
   }
 
   // ---------------------------------------------------------
-  // Progreso general
+  // Progreso
   // ---------------------------------------------------------
   getProgreso(): number {
     const total = this.products.length;
@@ -152,7 +140,7 @@ export class Checklist {
   }
 
   // ---------------------------------------------------------
-  // Modal para guardar PDF/Excel
+  // Modal guardar reporte
   // ---------------------------------------------------------
   abrirModalGuardar(): void {
     const dialogRef = this.dialog.open(ModalGuardar, { width: '400px' });
