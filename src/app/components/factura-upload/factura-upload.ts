@@ -1,15 +1,20 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as XLSX from 'xlsx';
+import { Router } from '@angular/router';
+
+
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { PdfToExcelService } from '../../services/pdf-to-excel';
+import { PdfReaderService } from '../../services/pdf-reader';
 import { StorageService } from '../../services/storage';
+import { DialogService } from '../../services/dialog';
 import { Producto } from '../../models/producto';
 
 interface Factura {
@@ -27,15 +32,20 @@ interface Factura {
     MatInputModule,
     MatTableModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatTooltipModule
   ],
   templateUrl: './factura-upload.html',
   styleUrls: ['./factura-upload.scss']
 })
 export class FacturaUpload {
 
-  facturas: Factura[] = [];
+  // 🔥 USAR MatTableDataSource en lugar de array simple
+  dataSource = new MatTableDataSource<Factura>([]);
   allProducts: Producto[] = [];
+
+  // Columnas a mostrar en la tabla
+  displayedColumns: string[] = ['n', 'nombre', 'productos', 'acciones'];
 
   constructor(
     private pdfToExcel: PdfToExcelService,
@@ -49,7 +59,10 @@ export class FacturaUpload {
     const files: FileList = event.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files).forEach(async (file) => {
+    console.log(`📂 Archivos seleccionados: ${files.length}`);
+
+    // Procesar archivos secuencialmente (uno por uno)
+    for (const file of Array.from(files)) {
       const name = file.name.toLowerCase();
 
       // Conversión automática PDF → Excel
@@ -121,17 +134,24 @@ export class FacturaUpload {
           estado: 'pendiente'
         }));
 
-        this.facturas.push({
-          fileName: file.name,
-          productos
-        });
+          //  Agregar al dataSource correctamente
+          const facturasActuales = this.dataSource.data;
+          facturasActuales.push({
+            fileName: file.name,
+            productos: productosExcel
+          });
+          this.dataSource.data = [...facturasActuales]; //  Forzar actualización
+
+          console.log(`✅ Excel procesado: ${productosExcel.length} productos`);
+          resolve();
 
       } catch (err) {
         console.error('Error leyendo factura:', err);
       }
     };
 
-    reader.readAsArrayBuffer(file);
+      reader.readAsArrayBuffer(file);
+    });
   }
 
   // ------------------------------------------------------------
@@ -163,6 +183,9 @@ export class FacturaUpload {
     this.allProducts = [];
   }
 
+  // ============================================================
+  // ELIMINAR FACTURA INDIVIDUAL
+  // ============================================================
   eliminarFactura(index: number): void {
     if (!confirm('¿Seguro que deseas eliminar esta factura?')) return;
     this.facturas.splice(index, 1);

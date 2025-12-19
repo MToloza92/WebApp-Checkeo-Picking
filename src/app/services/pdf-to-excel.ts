@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx';
 import * as pdfjsLib from 'pdfjs-dist';
-import 'pdfjs-dist/build/pdf.mjs'; // ✅ usa el build normal, no el worker
+import 'pdfjs-dist/build/pdf.mjs'; //  usa el build normal, no el worker
 
-// 👇 Configuramos el worker para cargarlo desde CDN (sin importar local)
+//  Configuramos el worker para cargarlo desde CDN (sin importar local)
 (pdfjsLib as any).GlobalWorkerOptions.workerSrc =
   `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${(pdfjsLib as any).version}/pdf.worker.min.js`;
 
@@ -15,7 +15,7 @@ export class PdfToExcelService {
     try {
       const arrayBuffer = await file.arrayBuffer();
 
-      // 🧩 Abrimos el PDF
+      //  Abrimos el PDF
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
       let allText: string[] = [];
@@ -34,7 +34,7 @@ export class PdfToExcelService {
         throw new Error('El PDF no contiene texto seleccionable.');
       }
 
-      // 🔎 Buscamos patrones básicos de productos
+      //  Buscamos patrones básicos de productos
       const productRegex = /(\d+)\s+([A-Z0-9\s\-\/\.]+)\s+(UN|CJ|PAQ|ROL|BOT|KG)\s+(\d+)/g;
       const matches = [...fullText.matchAll(productRegex)];
 
@@ -52,7 +52,7 @@ export class PdfToExcelService {
 
       console.log('✅ Productos extraídos:', rows);
 
-      // 📄 Creamos el Excel temporal
+      //  Creamos el Excel temporal
       const worksheet = XLSX.utils.json_to_sheet(rows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Factura');

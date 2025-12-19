@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 
 import { StorageService } from '../../services/storage';
 import { ReporteService } from '../../services/reporte';
+import { DialogService } from '../../services/dialog';
 import { ReporteHistorial } from '../../interfaces/reporte-historial';
 
 @Component({
@@ -24,68 +25,76 @@ import { ReporteHistorial } from '../../interfaces/reporte-historial';
 })
 export class HistorialComponent implements OnInit {
 
-  /** Columnas visibles en la tabla Material */
   displayedColumns = ['nombre', 'tipo', 'fecha', 'acciones'];
-
-  /** Lista de reportes almacenados */
   historial: ReporteHistorial[] = [];
-
-  /** Productos existentes en localStorage */
   productos: any[] = [];
 
   constructor(
     private storage: StorageService,
-    private reporteService: ReporteService
+    private reporteService: ReporteService,
+    private dialogService: DialogService
   ) {}
 
   ngOnInit() {
-    // Cargar historial almacenado
-    this.historial = this.reporteService.obtenerHistorial();
-
-    // Cargar productos que permiten regenerar reportes
+    this.cargarHistorial();
     this.productos = this.storage.getProducts();
-
-    console.log('Historial cargado', this.historial);
-    console.log('Productos cargados', this.productos);
   }
 
-  /** Recargar historial desde el servicio */
   cargarHistorial(): void {
     this.historial = this.reporteService.obtenerHistorial();
   }
 
-  /**
-   * Descargar un reporte desde el historial usando un formato
-   * seleccionado desde el menú desplegable.
-   */
+  // ---------------------------------------------------------
+  // Descargar reporte desde historial
+  // ---------------------------------------------------------
   descargar(item: ReporteHistorial, formato: 'pdf' | 'excel'): void {
-
-    // Asegurar que existen productos
     const productos = this.storage.getProducts();
 
     if (!productos || productos.length === 0) {
-      alert('No hay productos guardados para generar este reporte.');
+      this.dialogService.confirm({
+        title: 'Sin productos',
+        message: 'No hay productos guardados para generar este reporte.',
+        confirmText: 'Entendido',
+        cancelText: ''
+      }).subscribe();
       return;
     }
 
     this.reporteService.descargarDesdeHistorial(item, productos, formato);
   }
 
-  /** Eliminar un registro del historial */
+  // ---------------------------------------------------------
+  // Eliminar un registro del historial
+  // ---------------------------------------------------------
   borrar(item: ReporteHistorial): void {
-    if (!confirm('¿Eliminar este registro del historial?')) return;
+    this.dialogService.confirm({
+      title: 'Eliminar registro',
+      message: `¿Deseas eliminar el reporte "${item.nombre}" del historial?`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    }).subscribe(confirmado => {
+      if (!confirmado) return;
 
-    const nuevoHistorial = this.historial.filter(h => h.fecha !== item.fecha);
-    this.reporteService.guardarHistorialArray(nuevoHistorial);
-
-    this.cargarHistorial();
+      const nuevoHistorial = this.historial.filter(h => h.fecha !== item.fecha);
+      this.reporteService.guardarHistorialArray(nuevoHistorial);
+      this.cargarHistorial();
+    });
   }
 
-  /** Limpiar todo el historial */
+  // ---------------------------------------------------------
+  // Limpiar todo el historial
+  // ---------------------------------------------------------
   limpiarTodo(): void {
-    if (!confirm('¿Limpiar completamente el historial?')) return;
+    this.dialogService.confirm({
+      title: 'Limpiar historial',
+      message: 'Se eliminarán todos los reportes guardados. Esta acción no se puede deshacer.',
+      confirmText: 'Limpiar',
+      cancelText: 'Cancelar'
+    }).subscribe(confirmado => {
+      if (!confirmado) return;
 
-    this.reporteService.limpiarHistorial();
-    this.cargarHistorial();
+      this.reporteService.limpiarHistorial();
+      this.cargarHistorial();
+    });
   }
 }
